@@ -50,29 +50,33 @@ export class RedeSocialInterativa {
     private menuPerfis(): void {
         console.log('\n--- Gerenciamento de Perfis ---');
         console.log('1. Adicionar Perfil');
-        console.log('2. Listar Perfis');
-        console.log('3. Ativar/Desativar Perfil');
-        console.log('4. Salvar')
-        console.log('5. Recuperar')
-        console.log('6. Voltar ao Menu Principal');
+        console.log('2. Adicionar Perfil Avançado'); // Nova opção
+        console.log('3. Listar Perfis');
+        console.log('4. Ativar/Desativar Perfil');
+        console.log('5. Salvar');
+        console.log('6. Recuperar');
+        console.log('7. Voltar ao Menu Principal');
         this.rl.question('Escolha uma opção: ', (opcao) => {
             switch (opcao) {
                 case '1':
-                    this.adicionarPerfil();
+                    this.adicionarPerfil(false); // Adiciona perfil normal
                     break;
                 case '2':
-                    this.listarPerfis();
+                    this.adicionarPerfil(true);  // Adiciona perfil avançado
                     break;
                 case '3':
-                    this.ativarDesativarPerfil();
+                    this.listarPerfis();
                     break;
                 case '4':
-                    this.salvarPerfis();
+                    this.ativarDesativarPerfil();
                     break;
                 case '5':
-                    this.recuperarPerfis();
+                    this.salvarPerfis();
                     break;
                 case '6':
+                    this.recuperarPerfis();
+                    break;
+                case '7':
                     this.menuPrincipal();
                     break;
                 default:
@@ -84,20 +88,26 @@ export class RedeSocialInterativa {
     }
 
     // Métodos do menuPerfis
-    private adicionarPerfil(): void {
+    private adicionarPerfil(avancado: boolean): void {
         this.rl.question('ID: ', (id) => {
             this.rl.question('Apelido: ', (apelido) => {
                 this.rl.question('Foto (emoji): ', (foto) => {
                     this.rl.question('Email: ', (email) => {
-                        const perfil = new Perfil(id, apelido, foto, email);
+                        let perfil;
+                        if (avancado) {
+                            perfil = new PerfilAvancado(id, apelido, foto, email);
+                        } else {
+                            perfil = new Perfil(id, apelido, foto, email);
+                        }
+    
                         try {
                             this.redeSocial.adicionarPerfil(perfil);
                             console.log('Perfil adicionado com sucesso!');
                             this.menuPerfis();
                         } catch (erro) {
                             if (erro instanceof PerfilJaCadastradoError) {
-                                console.error(erro.message);
-                                this.menuPerfis(); // Ou outro menu, dependendo da lógica
+                                console.error(erro.message); // Exibe a mensagem específica do erro
+                                this.menuPerfis();
                             } else {
                                 console.error("Ocorreu um erro desconhecido:", erro);
                                 this.menuPerfis();

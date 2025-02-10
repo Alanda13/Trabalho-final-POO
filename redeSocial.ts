@@ -1,6 +1,6 @@
 import { Perfil, PerfilAvancado, Publicacao, PublicacaoAvancada, Interacao, TipoInteracao } from './perfil';
 import { PerfilJaCadastradoError, PerfilNaoAutorizadoError, PerfilInativoError, AmizadeJaExistenteError } from './excecoes';
-import { RedeSocialInterativa } from './interacao';
+
 export class RedeSocial {
     private _perfis: Perfil[];
     private _publicacoes: Publicacao[];
@@ -12,11 +12,12 @@ export class RedeSocial {
         this._solicitacoesAmizade = new Map<Perfil, Perfil>();
     }
 
+    private perfis: Perfil[] = [];
     adicionarPerfil(perfil: Perfil): void {
-        if (this._perfis.find(p => p['id'] === perfil['id'] || p['email'] === perfil['email'])) {
-            throw new PerfilJaCadastradoError('Perfil com ID ou email duplicado.');
+        if (this.perfis.some(p => p['email'] === perfil['email'])) {
+            throw new PerfilJaCadastradoError("Já existe um perfil com este e-mail.");
         }
-        this._perfis.push(perfil);
+        this.perfis.push(perfil);
     }
 
     buscarPerfil(id?: string, apelido?: string, email?: string): Perfil | null {
