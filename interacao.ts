@@ -96,10 +96,11 @@ export class RedeSocialInterativa {
                             this.menuPerfis();
                         } catch (erro) {
                             if (erro instanceof PerfilJaCadastradoError) {
-                                this.menuSolicitacoes();
+                                console.error(erro.message);
+                                this.menuPerfis(); // Ou outro menu, dependendo da lógica
                             } else {
-                                console.error("Ocorreu um erro desconhecido!")
-                                this.menuSolicitacoes();
+                                console.error("Ocorreu um erro desconhecido:", erro);
+                                this.menuPerfis();
                             }
                         }
                     });
@@ -202,26 +203,38 @@ export class RedeSocialInterativa {
     }
 
     private adicionarPublicacao(): void {
-        this.rl.question('Email do perfil: ', (apelido) => {
-            const perfil = this.redeSocial.buscarPerfil(undefined, undefined, apelido);
+        this.rl.question('Email do perfil: ', (email) => {
+            const perfil = this.redeSocial.buscarPerfil(undefined, undefined, email);
+    
             if (perfil) {
                 try {
+                    // Verifique se o perfil está ativo ANTES de pedir o conteúdo e criar a publicação
+                    if (perfil.perfil_status !== 'ativo') {
+                        throw new PerfilInativoError("Perfil está inativo e não pode adicionar publicações.");
+                    }
+    
                     this.rl.question('Conteúdo: ', (conteudo) => {
-                        const publicacao = new Publicacao(Date.now().toString(), conteudo, perfil);
-                        this.redeSocial.adicionarPublicacao(publicacao);
-                        console.log('Publicação adicionada com sucesso!');
-                        this.menuPublicacoes();
+                        try {
+                            const publicacao = new Publicacao(Date.now().toString(), conteudo, perfil);
+                            this.redeSocial.adicionarPublicacao(publicacao);
+                            console.log('Publicação adicionada com sucesso!');
+                            this.menuPublicacoes();
+                        } catch (erro) {
+                            console.error("Erro ao adicionar publicação:", erro);
+                            this.menuPublicacoes();
+                        }
                     });
                 } catch (erro) {
                     if (erro instanceof PerfilInativoError) {
-                        this.menuSolicitacoes();
+                        console.error(erro.message);
+                        this.menuPublicacoes();
                     } else {
-                        console.error("Ocorreu um erro desconhecido!")
-                        this.menuSolicitacoes();
+                        console.error("Ocorreu um erro desconhecido:", erro);
+                        this.menuPublicacoes();
                     }
                 }
             } else {
-                console.log('Perfil não encontrado.');
+                console.error('Perfil não encontrado.');
                 this.menuPublicacoes();
             }
         });

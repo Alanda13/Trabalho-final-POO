@@ -47,6 +47,7 @@ export class RedeSocial {
     }
 
 
+
     private solicitacoesAmizade: { remetente: Perfil, destinatario: Perfil }[] = [];
 
     enviarSolicitacaoAmizade(remetente: Perfil, destinatario: Perfil): void {
