@@ -2,7 +2,7 @@ import { Perfil } from './perfil';
 import { PersistenciaDeDados } from './persistenciaDados';
 import {Publicacao} from './perfil';
 import { PerfilAvancado} from './perfil';
-import {PerfilNaoAutorizadoError, AmizadeJaExistenteError} from './excecoes'
+import {PerfilNaoAutorizadoError, AmizadeJaExistenteError, PerfilInativoError} from './excecoes'
 
 export class RedeSocial {
     private _perfis: Perfil[] = [];
@@ -43,6 +43,9 @@ export class RedeSocial {
 
     // Adicionar uma publicação e salvar
     adicionarPublicacao(publicacao: Publicacao): void {
+        if (!publicacao.perfil_perfil.estaAtivo()) {
+            throw new PerfilInativoError("Perfil está inativo e não pode adicionar publicações.");
+        }
         this._publicacoes.push(publicacao);
         PersistenciaDeDados.salvarPublicacoes(this._publicacoes);  // Salva as publicações
     }
@@ -52,8 +55,21 @@ export class RedeSocial {
         return this._publicacoes.sort((a, b) => b['dataHora'].getTime() - a['dataHora'].getTime());
     }
     buscarPerfil(id?: string, apelido?: string, email?: string): Perfil | null {
-        return this._perfis.find(perfil => perfil['id'] === id || perfil['apelido'] === apelido || perfil['email'] === email) || null;
+        if (email) {
+            return this._perfis.find(perfil => perfil.getEmail() === email) || null;
+        } else if (id) {
+            return this._perfis.find(perfil => perfil.getId() === id) || null;
+        } else if (apelido) {
+            return this._perfis.find(perfil => perfil.getApelido() === apelido) || null;
+        } else {
+            return null; // Se nenhum parâmetro for fornecido
+        }
     }
+
+    buscarPublicacaoPorId(id: string): Publicacao | undefined {
+        return this._publicacoes.find(publicacao => publicacao.getId() === id);
+    }
+
     recusarSolicitacao(destinatario: Perfil): void {
         // Encontrar o índice da primeira solicitação de amizade pendente para este destinatário
         const solicitacaoIndex = Array.from(this._solicitacoesAmizade.entries())
@@ -74,8 +90,10 @@ export class RedeSocial {
         if (!(perfilAvancado instanceof PerfilAvancado)) {
             throw new PerfilNaoAutorizadoError('Perfil não autorizado para ativar/desativar outro perfil.');
         }
-        perfilAvancado.habilitarDesabilitarPerfil(perfil);
+        perfil.ativarDesativarPerfil(); 
+        PersistenciaDeDados.salvarPerfis(this._perfis);
     }
+
     enviarSolicitacaoAmizade(remetente: Perfil, destinatario: Perfil): void {
         if (remetente === destinatario) {
             throw new Error("Não é possível enviar uma solicitação de amizade para si mesmo.");

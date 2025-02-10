@@ -53,19 +53,20 @@ export class Perfil {
         return this.email;
     }
 
-    get apelido_perfil(): string {
+    getperfil(): string {
         return this.apelido;
     }
-    get perfil_foto(): string {
+    getfoto(): string {
         return this.foto;
     }
-    get perfil_status(): string {
+    getstatus(): string {
         return this.status;
     }
 
-    get perfil_email(): string {
+    getemail(): string {
         return this.email;
     }
+    
 }
 
 export class Publicacao {
@@ -81,7 +82,28 @@ export class Publicacao {
         this.perfil = perfil;
     }
     get perfilApelido(): string {
-        return this.perfil.apelido_perfil;
+        return this.perfil.getApelido();
+    }
+
+    get perfil_perfil(): Perfil{
+        return this.perfil;
+    }
+}
+
+export class PublicacaoAvancada extends Publicacao {
+    private interacoes: Interacao[];
+
+    constructor(id: string, conteudo: string, perfil: Perfil) {
+        super(id, conteudo, perfil);
+        this.interacoes = [];
+    }
+
+    adicionarInteracao(interacao: Interacao): void {
+        this.interacoes.push(interacao);
+    }
+
+    listarInteracoes(): Interacao[] {
+        return this.interacoes;
     }
 }
 
@@ -108,4 +130,3 @@ export class PerfilAvancado extends Perfil {
         perfil.ativarDesativarPerfil();
     }
 }
-

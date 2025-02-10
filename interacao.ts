@@ -1,6 +1,6 @@
 import * as readline from 'readline';
 import { RedeSocial } from './redeSocial';
-import { Perfil, PerfilAvancado, Publicacao } from './perfil';
+import { Perfil, PerfilAvancado, Publicacao, PublicacaoAvancada} from './perfil';
 import { AmizadeJaExistenteError, PerfilInativoError, PerfilJaCadastradoError, PerfilNaoAutorizadoError } from './excecoes';
 import { PersistenciaDeDados } from './persistenciaDados';
 
@@ -125,7 +125,8 @@ export class RedeSocialInterativa {
             console.log('Nenhum perfil cadastrado.');
         } else {
             perfis.forEach(perfil => {
-                console.log(`ID: ${perfil.getId()}, Apelido: ${perfil.getApelido()}, Ativo: ${perfil.estaAtivo()}, Email: ${perfil.getEmail()}`);
+                const tipoPerfil = perfil instanceof PerfilAvancado ? 'Avançado' : 'Normal';
+                console.log(`ID: ${perfil.getId()}, Apelido: ${perfil.getApelido()}, Email: ${perfil.getEmail()}, Tipo: ${tipoPerfil}, Ativo: ${perfil.estaAtivo()}`);
             });
         }
         this.menuPerfis();
@@ -187,25 +188,29 @@ export class RedeSocialInterativa {
     private menuPublicacoes(): void {
         console.log('\n--- Gerenciamento de Publicações ---');
         console.log('1. Adicionar Publicação');
-        console.log('2. Listar Publicações');
-        console.log('3. Salvar');
-        console.log('4. Recuperar');
-        console.log('5. Voltar ao Menu Principal');
+        console.log('2. Adicionar Publicação Avançada'); // Nova opção
+        console.log('3. Listar Publicações');
+        console.log('4. Salvar');
+        console.log('5. Recuperar');
+        console.log('6. Voltar ao Menu Principal');
         this.rl.question('Escolha uma opção: ', (opcao) => {
             switch (opcao) {
                 case '1':
-                    this.adicionarPublicacao();
+                    this.adicionarPublicacao(false); // Adiciona publicação normal
                     break;
                 case '2':
-                    this.listarPublicacoes();
+                    this.adicionarPublicacao(true);  // Adiciona publicação avançada
                     break;
                 case '3':
-                    this.salvarPublicacoes();
+                    this.listarPublicacoes();
                     break;
                 case '4':
-                    this.recuperarPublicacoes();
+                    this.salvarPublicacoes();
                     break;
                 case '5':
+                    this.recuperarPublicacoes();
+                    break;
+                case '6':
                     this.menuPrincipal();
                     break;
                 default:
@@ -215,28 +220,33 @@ export class RedeSocialInterativa {
             }
         });
     }
-
-    private adicionarPublicacao(): void {
+    
+    private adicionarPublicacao(avancada: boolean): void {
         this.rl.question('Email do perfil: ', (email) => {
-            const perfil = this.redeSocial.buscarPerfil(email);
+            const perfil = this.redeSocial.buscarPerfil(undefined, undefined, email);
     
             if (perfil) {
-                if (perfil.perfil_status !== 'ativo') {
-                    console.error("Perfil inativo não pode adicionar publicações.");
-                    this.menuPublicacoes();
-                } else {
-                    this.rl.question('Conteúdo: ', (conteudo) => {
-                        try {
-                            const publicacao = new Publicacao(Date.now().toString(), conteudo, perfil);
-                            this.redeSocial.adicionarPublicacao(publicacao);
-                            console.log('Publicação adicionada com sucesso!');
+                this.rl.question('Conteúdo: ', (conteudo) => {
+                    try {
+                        let publicacao;
+                        if (avancada) {
+                            publicacao = new PublicacaoAvancada(Date.now().toString(), conteudo, perfil);
+                        } else {
+                            publicacao = new Publicacao(Date.now().toString(), conteudo, perfil);
+                        }
+                        this.redeSocial.adicionarPublicacao(publicacao);
+                        console.log('Publicação adicionada com sucesso!');
+                        this.menuPublicacoes();
+                    } catch (erro) {
+                        if (erro instanceof PerfilInativoError) {
+                            console.error(erro.message);
                             this.menuPublicacoes();
-                        } catch (erro) {
-                            console.error("Erro ao adicionar publicação:", erro);
+                        } else {
+                            console.error("Ocorreu um erro desconhecido:", erro);
                             this.menuPublicacoes();
                         }
-                    });
-                }
+                    }
+                });
             } else {
                 console.error('Perfil não encontrado.');
                 this.menuPublicacoes();
@@ -247,7 +257,7 @@ export class RedeSocialInterativa {
     private listarPublicacoes(): void {
         const publicacoes = this.redeSocial.listarPublicacoes();
         console.log('\nPublicações:');
-        publicacoes.forEach(pub => console.log(`${pub['perfil'].apelido_perfil} - Foto: ${pub['perfil'].perfil_foto}: [${pub['dataHora']}] ${pub['conteudo']}`));
+        publicacoes.forEach(pub => console.log(`${pub['perfil'].getApelido()} - Foto: ${pub['perfil'].getfoto}: [${pub['dataHora']}] ${pub['conteudo']}`));
         this.menuPublicacoes();
     }
 
@@ -408,4 +418,6 @@ export class RedeSocialInterativa {
     }
     
 }
+
+
 
