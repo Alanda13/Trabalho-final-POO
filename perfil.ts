@@ -40,28 +40,33 @@ export class Perfil {
     ativarDesativarPerfil(): void {
         this.status = this.status === 'ativo' ? 'inativo' : 'ativo';
     }
-
-    get apelido_perfil(): string{
+    getId(): string {
+        return this.id;
+    }
+    getApelido(): string {
         return this.apelido;
     }
-    get perfil_foto(): string{
+    estaAtivo(): boolean {
+        return this.status === 'ativo';
+    }
+    getEmail(): string {
+        return this.email;
+    }
+
+    get apelido_perfil(): string {
+        return this.apelido;
+    }
+    get perfil_foto(): string {
         return this.foto;
     }
-    get perfil_status(): string{
+    get perfil_status(): string {
         return this.status;
     }
 
-    get perfil_email(): string{
+    get perfil_email(): string {
         return this.email;
     }
 }
-
-export class PerfilAvancado extends Perfil {
-    habilitarDesabilitarPerfil(perfil: Perfil): void {
-        perfil.ativarDesativarPerfil();
-    }
-}
-
 
 export class Publicacao {
     private id: string;
@@ -75,25 +80,8 @@ export class Publicacao {
         this.dataHora = new Date();
         this.perfil = perfil;
     }
-    get perfilApelido(): string{
+    get perfilApelido(): string {
         return this.perfil.apelido_perfil;
-    }
-}
-
-export class PublicacaoAvancada extends Publicacao {
-    private interacoes: Interacao[];
-
-    constructor(id: string, conteudo: string, perfil: Perfil) {
-        super(id, conteudo, perfil);
-        this.interacoes = [];
-    }
-
-    adicionarInteracao(interacao: Interacao): void {
-        this.interacoes.push(interacao);
-    }
-
-    listarInteracoes(): Interacao[] {
-        return this.interacoes;
     }
 }
 
@@ -115,3 +103,9 @@ export enum TipoInteracao {
     Riso = '😂',
     Surpresa = '😮'
 }
+export class PerfilAvancado extends Perfil {
+    habilitarDesabilitarPerfil(perfil: Perfil): void {
+        perfil.ativarDesativarPerfil();
+    }
+}
+
